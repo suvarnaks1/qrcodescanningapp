@@ -2,7 +2,6 @@ import 'package:company_task/services/auth_service.dart';
 import 'package:company_task/view/scanning_page.dart';
 import 'package:company_task/view/signup_page.dart';
 import 'package:flutter/material.dart';
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 

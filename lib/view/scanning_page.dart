@@ -1,7 +1,7 @@
-
 import 'package:company_task/view/data_enter_page.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class QrScanPage extends StatefulWidget {
   const QrScanPage({super.key});
@@ -24,29 +24,45 @@ class _QrScanPageState extends State<QrScanPage> {
       ),
       body: Column(
         children: [
-        Expanded(
-  flex: 4,
-  child: MobileScanner(
-    controller: MobileScannerController(
-      facing: CameraFacing.back,
-      torchEnabled: false,
-    ),
-   // allowDuplicates: false,
-    onDetect: (BarcodeCapture capture) {
-      final List<Barcode> barcodes = capture.barcodes;
-      for (final barcode in barcodes) {
-        final String? code = barcode.rawValue;
-        if (code != null && !isScanned) {
-          setState(() {
-            scannedUrl = code;
-            isScanned = true;
-          });
-        }
-      }
-    },
-  ),
-),
+          Expanded(
+            flex: 4,
+            child: MobileScanner(
+              controller: MobileScannerController(
+                facing: CameraFacing.back,
+                torchEnabled: false,
+              ),
+              onDetect: (BarcodeCapture capture) async {
+                final List<Barcode> barcodes = capture.barcodes;
+                for (final barcode in barcodes) {
+                  final String? code = barcode.rawValue;
+                  if (code != null && !isScanned) {
+                    // ✅ Check with Supabase
+                    final response = await Supabase.instance.client
+                        .from('qr_codes')
+                        .select()
+                        .eq('qr_text', code)
+                        .maybeSingle();
 
+                    if (response != null) {
+                      // QR Code is valid
+                      setState(() {
+                        scannedUrl = code;
+                        isScanned = true;
+                      });
+                    } else {
+                      // ❌ Invalid QR
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Invalid QR Code!'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                }
+              },
+            ),
+          ),
           Expanded(
             flex: 2,
             child: Center(
@@ -67,11 +83,11 @@ class _QrScanPageState extends State<QrScanPage> {
                           ),
                         ),
                         ElevatedButton(
-                          //onPressed: () => _launchInBrowser(scannedUrl!),
-                          onPressed: (){
- Navigator.of(context).push(
-    MaterialPageRoute(builder: (context) => DataEnterPage()),
-  );
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                  builder: (context) => const DataEnterPage()),
+                            );
                           },
                           child: const Text('Submit'),
                         ),
@@ -93,13 +109,4 @@ class _QrScanPageState extends State<QrScanPage> {
       ),
     );
   }
-
-  // Future<void> _launchInBrowser(String url) async {
-  //   final Uri uri = Uri.parse(url);
-  //   if (await canLaunchUrl(uri)) {
-  //     await launchUrl(uri, mode: LaunchMode.externalApplication);
-  //   } else {
-  //     throw 'Could not launch $url';
-  //   }
-  // }
 }

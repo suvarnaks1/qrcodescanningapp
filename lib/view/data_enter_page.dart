@@ -202,11 +202,7 @@ class _DataEnterPageState extends State<DataEnterPage> {
                   label: const Text("Camera"),
                   onPressed: () => _pickImage(ImageSource.camera),
                 ),
-                TextButton.icon(
-                  icon: const Icon(Icons.photo_library),
-                  label: const Text("Gallery"),
-                  onPressed: () => _pickImage(ImageSource.gallery),
-                ),
+              
               ],
             ),
             const SizedBox(height: 20),
